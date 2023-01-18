@@ -18,60 +18,76 @@
 //되도록 파일 분할
 const BASE_URL = "http://localhost:3000/api/";
 
-const MenuApi = {
-  async getAllMenuByCategory(category) {
-    const response = await fetch(`${BASE_URL}/category/${category}/menu`);
-    return response.json();
-  },
-  async createMenu(category, name) {
-    const response = await fetch(`${BASE_URL}/category/${category}/menu`, {
+const HTTP_METHOD = {
+  POST(data) {
+    return {
       method: "POST", //생성
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name }),
-    });
-    if (!response.ok) {
-      console.error("에러가 발생했습니다.");
-    }
+      body: JSON.stringify(data),
+    };
   },
-  async reviseMenuName(category, name, menuId) {
-    const response = await fetch(
+  PUT(data) {
+    return {
+      method: "PUT", //수정
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: data ? JSON.stringify(data) : null,
+    };
+  },
+  DELETE() {
+    return {
+      method: "DELETE",
+    };
+  },
+};
+
+const request = async (url, option) => {
+  const response = await fetch(url, option);
+  if (!response.ok) {
+    alert("에러가 발생했습니다.");
+    console.error(e);
+  }
+  return response.json(); //json으로 반환
+};
+
+const requestWithoutJson = async (url, option) => {
+  const response = await fetch(url, option);
+  if (!response.ok) {
+    alert("에러가 발생했습니다.");
+    console.error(e);
+  }
+};
+
+const MenuApi = {
+  getAllMenuByCategory(category) {
+    return request(`${BASE_URL}/category/${category}/menu`);
+  },
+  createMenu(category, name) {
+    return request(
+      `${BASE_URL}/category/${category}/menu`,
+      HTTP_METHOD.POST({ name })
+    );
+  },
+  reviseMenuName(category, name, menuId) {
+    return request(
       `${BASE_URL}/category/${category}/menu/${menuId}`,
-      {
-        method: "PUT", //수정
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name }),
-      }
+      HTTP_METHOD.PUT({ name })
     );
-    if (!response.ok) {
-      console.error("에러가 발생했습니다.");
-    }
-    return response.json();
   },
-  async toggleSoldOutMenu(category, menuId) {
-    const response = await fetch(
+  toggleSoldOutMenu(category, menuId) {
+    return request(
       `${BASE_URL}/category/${category}/menu/${menuId}/soldout`,
-      {
-        method: "PUT",
-      }
+      HTTP_METHOD.PUT()
     );
-    if (!response.ok) {
-      console.error("에러가 발생했습니다.");
-    }
   },
-  async removeMenu(category, menuId) {
-    const response = await fetch(
-      `${BASE_URL}/category/${category}/menu/${menuId}/`,
-      {
-        method: "DELETE",
-      }
+  removeMenu(category, menuId) {
+    return requestWithoutJson(
+      `${BASE_URL}/category/${category}/menu/${menuId}`,
+      HTTP_METHOD.DELETE()
     );
-    if (!response.ok) {
-      console.error("에러가 발생했습니다.");
-    }
   },
 };
 
