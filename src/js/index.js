@@ -66,6 +66,17 @@ const MenuApi = {
       console.error("에러가 발생했습니다.");
     }
   },
+  async removeMenu(category, menuId) {
+    const response = await fetch(
+      `${BASE_URL}/category/${category}/menu/${menuId}/`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok) {
+      console.error("에러가 발생했습니다.");
+    }
+  },
 };
 
 function App() {
@@ -172,12 +183,17 @@ function App() {
     render();
   };
   //메뉴 제거 정의
-  const removeMenu = (e) => {
+  const removeMenu = async (e) => {
     if (confirm("삭제 하시겠습니까?")) {
       //데이터도 제거
       const menuId = e.target.closest("li").dataset.menuId;
-      this.menu[this.currentCategory].splice(menuId, 1);
-      store.setLocalStorage(this.menu);
+      await MenuApi.removeMenu(this.currentCategory, menuId);
+      //리스트 불러와야 바로 보인다
+      this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+        this.currentCategory
+      );
+      //   this.menu[this.currentCategory].splice(menuId, 1);
+      //   store.setLocalStorage(this.menu);
       render();
     }
   };
