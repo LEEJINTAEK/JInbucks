@@ -29,7 +29,7 @@ const MenuApi = {
   },
   async createMenu(category, name) {
     const response = await fetch(`${BASE_URL}/category/${category}/menu`, {
-      method: "POST",
+      method: "POST", //생성
       headers: {
         "Content-Type": "application/json",
       },
@@ -39,19 +39,22 @@ const MenuApi = {
       console.error("에러가 발생했습니다.");
     }
   },
-  //   await fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ name: MenuName }),
-  //   })
-  //     .then((response) => {
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //     });
+  async reviseMenuName(category, name, menuId) {
+    const response = await fetch(
+      `${BASE_URL}/category/${category}/menu/${menuId}`,
+      {
+        method: "PUT", //수정
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      }
+    );
+    if (!response.ok) {
+      console.error("에러가 발생했습니다.");
+    }
+    return response.json();
+  },
 };
 
 function App() {
@@ -80,7 +83,9 @@ function App() {
   const render = () => {
     const template = this.menu[this.currentCategory]
       .map((item, index) => {
-        return `<li data-menu-id="${index}" class= "menu-list-item d-flex items-center py-2">
+        return `<li data-menu-id="${
+          item.id
+        }" class= "menu-list-item d-flex items-center py-2">
           <span class="w-100 pl-2 menu-name ${
             item.soldOut ? "sold-out" : ""
           }">${item.name}</span>
@@ -125,7 +130,7 @@ function App() {
     const MenuName = $("#menu-name").value;
 
     await MenuApi.createMenu(this.currentCategory, MenuName);
-
+    //리스트 불러와야 바로 보임
     this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(
       this.currentCategory
     );
@@ -140,15 +145,19 @@ function App() {
   };
 
   //메뉴 수정 정의
-  const reviseMenu = (e) => {
+  const reviseMenu = async (e) => {
+    const menuId = e.target.closest("li").dataset.menuId;
     const $menuName = e.target.closest("li").querySelector(".menu-name"); //closest 위임...!
     const reviseName = prompt("메뉴명을 수정해주세요", $menuName.innerText);
 
-    //데이터도 수정
-    const menuId = e.target.closest("li").dataset.menuId;
-    this.menu[this.currentCategory][menuId].name = reviseName;
-    store.setLocalStorage(this.menu);
-
+    await MenuApi.reviseMenuName(this.currentCategory, reviseName, menuId);
+    //리스트 불러와야 바로 보인다
+    this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(
+      this.currentCategory
+    );
+    // //데이터도 수정
+    // this.menu[this.currentCategory][menuId].name = reviseName;
+    // store.setLocalStorage(this.menu);
     render();
   };
   //메뉴 제거 정의
